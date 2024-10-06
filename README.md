@@ -1,5 +1,9 @@
 # ADL - AI Generated Image Detection
 
+ **Name:** Anna Laczkó
+ 
+ **Matriculation number:** 12347556 
+ 
  A project made for my Applied Deep Learning Course at TU Wien
 
 ## Chosen project
