@@ -1,5 +1,4 @@
-# ADL - AI Generated Image Detection
-
+# ADL - AI Generated Image Detection *(Bring your own method)*
  **Name:** Anna Laczkó
  
  **Matriculation number:** 12347556 
@@ -13,6 +12,9 @@ My chosen topic is Detecting AI-generated images. Nowadays, my Facebook feed is 
 I think it would be beneficial to use some tools to help users of these medias recognizing fake contents. Not only it would help detect fake information and stop the growing distrust against visual arts, but it would also support artist who are concerned about their livelihood taken away by the overuse of AI art. I am motivated to see how strong a model I can put together for detecting these images, and I want to familiarize myself with methods to help this process.
 
 ## The approach
+For this project I want to implement a (hopefully) better neural network, so my chosen project type is **Bring your "own" method**. I would like to take a closer look at the methods, models implemented in the papers and use them. 
+
+My network design will probably be a CNN or a dual-stream network
 
 ## The dataset(s)
 
