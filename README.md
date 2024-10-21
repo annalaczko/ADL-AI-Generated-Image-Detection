@@ -29,6 +29,10 @@ The three collected papers recommend a wide variety of datasets, and I'm aiming 
 
 I also found a Kaggle dataset containing CIFAR-10 and CIFAKE. I would like to read through that, and because I have found multiple sources of information about those, I will use those as my starting datasets.
 
+### CIFAR-10 and CIFAKE: 
+CIFAR-10 is a subset of the dataset Tiny Images. It contains 60000 images from 10 classes. 
+CIFAKE is a merge of the CIFAR-10 dataset and a similar sized dataset which contains a similar structure of 60000 AI-generated images for the same 10 classes.
+
 ## The schedule
 
 Because of my other lecture, I want to do this task in bigger blocks.
@@ -41,8 +45,10 @@ Because of my other lecture, I want to do this task in bigger blocks.
 | **Ensemble Model** | 10-12 hours        | 2024.11.20-2024.12.10   |
 | **Comparing Ensemble to Individual Models**| 4-5 hours         | 2024.12.05-2024.12.12   |
 | **Buffer time** | -                  | 2024.12.12-2024.12.17   |
-| **Final Report** | 10-15 hours        | Simultaneously with every other step|
-
+| **Documentation for Assignment 2** | 8-10 hours        | Simultaneously with every previous step|
+| **Building application** | 20-25 hours        | 2024.12.28-2025.01.10|
+| **Final Report and preparing for presentation** | 10-15 hours        | 2025.01.10-2025.01.15|
+| **Buffer time** | -                  | 2025.01.15-2024.01.21   |
 
 ## Research papers:
 - Jordan J. Bird, Ahmad Lotfi **2023.** *CIFAKE: Image Classification and Explainable Identification of AI-Generated Synthetic Images* https://arxiv.org/abs/2303.14126
