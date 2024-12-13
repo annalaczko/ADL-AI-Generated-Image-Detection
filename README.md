@@ -55,6 +55,21 @@ Because of my other lecture, I want to do this task in bigger blocks.
 - Ziyi Xi, Wenmin Huang, Kangkang Wei, Weiqi Luo, Peijia Zheng **2023.** *AI-Generated Image Detection using a Cross-Attention Enhanced Dual-Stream Network* https://paperswithcode.com/paper/ai-generated-image-detection-using-a-cross
 - Zeyu Lu, Di Huang, LEI BAI, Jingjing Qu, Chengyue Wu, Xihui Liu, Wanli Ouyang **2023.** *Seeing is not always believing: Benchmarking Human and Model Perception of AI-Generated Images* https://paperswithcode.com/paper/seeing-is-not-always-believing-benchmarking
 
+## Other sources
+
+Krizhevsky, A., & Hinton, G. (2009). Learning multiple layers of features from tiny images. 
+
+Bird, J.J. and Lotfi, A., 2024. CIFAKE: Image Classification and Explainable Identification of AI-Generated Synthetic Images. IEEE Access.
+
+Real images are from Krizhevsky & Hinton (2009), fake images are from Bird & Lotfi (2024). The Bird & Lotfi study is available [here](https://ieeexplore.ieee.org/abstract/document/10409290).
+
+https://www.kaggle.com/datasets/superpotato9/dalle-recognition-dataset/data
+
+https://www.kaggle.com/datasets/awsaf49/artifact-dataset/
+
+https://github.com/awsaf49/artifact/
+
+
 ## Other references
 - https://www.kaggle.com/datasets/birdy654/cifake-real-and-ai-generated-synthetic-images
 
