@@ -142,6 +142,8 @@ To run tests:
 
 ```python -m unittest discover .```
 
+The tests also run automatically on GitHub on 3 differrent python versions.
+
 ### LLM use
 
 I used ChatGPT for the following:
