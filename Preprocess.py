@@ -9,7 +9,7 @@ import cv2
 
 class Process():
     """
-    Class for processing raw image data by applying transformations, augmentations, 
+    Class for processing raw image data by applying transformations, augmentations,
     and saving processed images in different directories.
     """
 
@@ -17,13 +17,12 @@ class Process():
         """
         Initializes the Process class.
 
-        Parameters:
-            raw_dir (str): Path to the directory containing raw images.
-            process_dir (str): Path where processed images will be saved.
-            image_size (tuple): Desired size for the images.
-            delete_process_dir (bool): Whether to delete the existing processed directory before creating new one.
-            batch_size (int): Number of images to process at once.
-            aug_amount (int): Number of augmentations per image (only for training).
+        :param raw_dir: Path to the directory containing raw images.
+        :param process_dir: Path where processed images will be saved.
+        :param image_size: Desired size for the images.
+        :param delete_process_dir: Whether to delete the existing processed directory before creating new one.
+        :param batch_size: Number of images to process at once.
+        :param aug_amount: Number of augmentations per image (only for training).
         """
         self.RAW_DIR = raw_dir
         self.PROCESSED_DIR = process_dir
@@ -55,13 +54,12 @@ class Process():
 
     def run(self, train_ratio, val_ratio, fraction=1):
         """
-        Runs the image processing pipeline: processes images by categories, applies transformations, 
+        Runs the image processing pipeline: processes images by categories, applies transformations,
         and creates dataset splits for training, validation, and testing.
 
-        Parameters:
-            train_ratio (float): Proportion of data for training.
-            val_ratio (float): Proportion of data for validation.
-            fraction (float): Fraction of data to process (default is 1 for full dataset).
+        :param train_ratio: Proportion of data for training.
+        :param val_ratio: Proportion of data for validation.
+        :param fraction: Fraction of data to process (default is 1 for full dataset).
         """
         os.makedirs(self.PROCESSED_DIR, exist_ok=True)
         for category in self.LABELS:
@@ -69,15 +67,14 @@ class Process():
 
     def process_label(self, train_ratio, val_ratio, label, size, fraction):
         """
-        Processes the images for one label (fake/real), splits the dataset into 
+        Processes the images for one label (fake/real), splits the dataset into
         train/validation/test, and applies transformations.
 
-        Parameters:
-            train_ratio (float): Proportion of data for training.
-            val_ratio (float): Proportion of data for validation.
-            label (str): Label/category of the images (fake/real).
-            size (tuple): Desired size for the images.
-            fraction (float): Fraction of data to process.
+        :param train_ratio: Proportion of data for training.
+        :param val_ratio: Proportion of data for validation.
+        :param label: Label/category of the images (fake/real).
+        :param size: Desired size for the images.
+        :param fraction: Fraction of data to process.
         """
         print(f"Working on {label}")
 
@@ -120,13 +117,10 @@ class Process():
         """
         Generates a unique filename by appending a counter to the base name.
 
-        Parameters:
-            base_path (str): Directory path to save the image.
-            base_name (str): Base name for the image.
-            counter (int): Counter to ensure uniqueness.
-
-        Returns:
-            str: A unique filename for the image.
+        :param base_path: Directory path to save the image.
+        :param base_name: Base name for the image.
+        :param counter: Counter to ensure uniqueness.
+        :return: A unique filename for the image.
         """
         while True:
             image_name = f"{base_name}_{counter}.jpg"
@@ -140,11 +134,10 @@ class Process():
         """
         Processes a list of images, applies transformations, and saves them in the appropriate folder.
 
-        Parameters:
-            images (list): List of image file paths to process.
-            category (str): Category for the images (train/valid/test).
-            size (tuple): Desired size for the images.
-            label (str): Label/category of the images (fake/real).
+        :param images: List of image file paths to process.
+        :param category: Category for the images (train/valid/test).
+        :param size: Desired size for the images.
+        :param label: Label/category of the images (fake/real).
         """
         ROOT_DIR = os.path.join(self.PROCESSED_DIR, f"{size[0]}")
 
@@ -160,4 +153,3 @@ class Process():
         else:
             rgb_path = os.path.join(ROOT_DIR, "test/rgb")
             edge_path = os.path.join(ROOT_DIR, "test/edge")
-      

@@ -10,7 +10,10 @@ import numpy as np
 class ClassifierNetwork(nn.Module):
     """
     A Convolutional Neural Network (CNN) for image classification.
-    
+
+    :param IMAGE_SIZE: The height and width of the input images.
+    :type IMAGE_SIZE: tuple
+
     Attributes:
         input_size (tuple): The input image size.
         conv1, conv2, conv3, conv4 (nn.Conv2d): Convolutional layers.
@@ -21,10 +24,10 @@ class ClassifierNetwork(nn.Module):
 
     def __init__(self, IMAGE_SIZE):
         """
-        Initializes the ClassifierNetwork with given image size.
-        
-        Args:
-            IMAGE_SIZE (tuple): The height and width of the input images.
+        Initializes the ClassifierNetwork with the given image size.
+
+        :param IMAGE_SIZE: The height and width of the input images.
+        :type IMAGE_SIZE: tuple
         """
         super(ClassifierNetwork, self).__init__()
         self.input_size = IMAGE_SIZE
@@ -55,12 +58,12 @@ class ClassifierNetwork(nn.Module):
     def _compute_flattened_size(self, input_size):
         """
         Computes the flattened size of the input after passing through all convolutional layers.
-        
-        Args:
-            input_size (tuple): The height and width of the input image.
-        
-        Returns:
-            int: The number of elements after flattening the output from the convolutional layers.
+
+        :param input_size: The height and width of the input image.
+        :type input_size: tuple
+
+        :return: The number of elements after flattening the output from the convolutional layers.
+        :rtype: int
         """
         x = torch.zeros(1, 3, *input_size)
         x = F.relu(self.bn1(self.conv1(x)))
@@ -72,12 +75,12 @@ class ClassifierNetwork(nn.Module):
     def forward(self, x):
         """
         Defines the forward pass of the model.
-        
-        Args:
-            x (torch.Tensor): The input tensor of images.
-        
-        Returns:
-            torch.Tensor: The output tensor after passing through the CNN layers and fully connected layers.
+
+        :param x: The input tensor of images.
+        :type x: torch.Tensor
+
+        :return: The output tensor after passing through the CNN layers and fully connected layers.
+        :rtype: torch.Tensor
         """
         # Convolutional layers with ReLU activation
         x = F.relu(self.bn1(self.conv1(x)))
@@ -97,7 +100,13 @@ class ClassifierNetwork(nn.Module):
 class Model():
     """
     A wrapper for training, validating, and testing a neural network model.
-    
+
+    :param network: The neural network to train.
+    :type network: nn.Module
+
+    :param epochs: The number of epochs to train the model.
+    :type epochs: int
+
     Attributes:
         device (torch.device): The device on which to run the model ('cuda' or 'cpu').
         model (nn.Module): The neural network model.
@@ -106,14 +115,16 @@ class Model():
         scheduler (torch.optim.lr_scheduler.ReduceLROnPlateau): The learning rate scheduler.
         num_epochs (int): The number of epochs to train for.
     """
-    
+
     def __init__(self, network, epochs):
         """
         Initializes the Model with the given network and number of epochs.
-        
-        Args:
-            network (nn.Module): The neural network to train.
-            epochs (int): The number of epochs to train the model.
+
+        :param network: The neural network to train.
+        :type network: nn.Module
+
+        :param epochs: The number of epochs to train the model.
+        :type epochs: int
         """
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
@@ -126,9 +137,9 @@ class Model():
     def train(self, train_loader):
         """
         Trains the model on the given training data.
-        
-        Args:
-            train_loader (DataLoader): The data loader for the training dataset.
+
+        :param train_loader: The data loader for the training dataset.
+        :type train_loader: DataLoader
         """
         prev_loss = float('inf')
         worse_loss_counter = 0
@@ -162,12 +173,12 @@ class Model():
     def predict(self, test_loader):
         """
         Makes predictions on the test data and computes the accuracy.
-        
-        Args:
-            test_loader (DataLoader): The data loader for the test dataset.
-        
-        Returns:
-            dict: A dictionary with the image paths as keys and the true and predicted labels as values.
+
+        :param test_loader: The data loader for the test dataset.
+        :type test_loader: DataLoader
+
+        :return: A dictionary with the image paths as keys and the true and predicted labels as values.
+        :rtype: dict
         """
         results = {}
         
