@@ -8,35 +8,60 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 import numpy as np
 
 class ClassifierNetwork(nn.Module):
+    """
+    A Convolutional Neural Network (CNN) for image classification.
+    
+    Attributes:
+        input_size (tuple): The input image size.
+        conv1, conv2, conv3, conv4 (nn.Conv2d): Convolutional layers.
+        bn1, bn2, bn3, bn4 (nn.BatchNorm2d): Batch normalization layers.
+        fc1, fc2 (nn.Linear): Fully connected layers.
+        _flattened_size (int): The flattened size after the convolutional layers.
+    """
+
     def __init__(self, IMAGE_SIZE):
+        """
+        Initializes the ClassifierNetwork with given image size.
+        
+        Args:
+            IMAGE_SIZE (tuple): The height and width of the input images.
+        """
         super(ClassifierNetwork, self).__init__()
         self.input_size = IMAGE_SIZE
         
-        #first convolutional block
+        # First convolutional block
         self.conv1 = nn.Conv2d(3, 16, kernel_size=5, padding=2, stride=2)
         self.bn1 = nn.BatchNorm2d(16)
 
-        #second convolutional block
+        # Second convolutional block
         self.conv2 = nn.Conv2d(16, 32, kernel_size=5, padding=2, stride=2)
         self.bn2 = nn.BatchNorm2d(32)
 
-        #third convolutional block
+        # Third convolutional block
         self.conv3 = nn.Conv2d(32, 64, kernel_size=5, padding=2, stride=3) 
         self.bn3 = nn.BatchNorm2d(64)
 
-        #fourth convolutional block
+        # Fourth convolutional block
         self.conv4 = nn.Conv2d(64, 128, kernel_size=4, padding=2, stride=3)  
         self.bn4 = nn.BatchNorm2d(128)
 
-        #calculate the flattened size after convolutions
+        # Calculate the flattened size after convolutions
         self._flattened_size = self._compute_flattened_size(self.input_size)
 
-        #fully connected layers
+        # Fully connected layers
         self.fc1 = nn.Linear(self._flattened_size, 512)
         self.fc2 = nn.Linear(512, 2)
 
-    #this to compute the output size after the cnn layers
     def _compute_flattened_size(self, input_size):
+        """
+        Computes the flattened size of the input after passing through all convolutional layers.
+        
+        Args:
+            input_size (tuple): The height and width of the input image.
+        
+        Returns:
+            int: The number of elements after flattening the output from the convolutional layers.
+        """
         x = torch.zeros(1, 3, *input_size)
         x = F.relu(self.bn1(self.conv1(x)))
         x = F.relu(self.bn2(self.conv2(x)))
@@ -44,68 +69,107 @@ class ClassifierNetwork(nn.Module):
         x = F.relu(self.bn4(self.conv4(x)))
         return x.numel()
 
-    def forward(self, x):        
-        #conv layers
+    def forward(self, x):
+        """
+        Defines the forward pass of the model.
+        
+        Args:
+            x (torch.Tensor): The input tensor of images.
+        
+        Returns:
+            torch.Tensor: The output tensor after passing through the CNN layers and fully connected layers.
+        """
+        # Convolutional layers with ReLU activation
         x = F.relu(self.bn1(self.conv1(x)))
         x = F.relu(self.bn2(self.conv2(x)))
         x = F.relu(self.bn3(self.conv3(x)))
         x = F.relu(self.bn4(self.conv4(x)))
         
-        #flatten
+        # Flatten the tensor
         x = x.view(x.size(0), -1)
 
-        #fully connected layers
+        # Fully connected layers with ReLU activation
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
 
         return x
 
 class Model():
+    """
+    A wrapper for training, validating, and testing a neural network model.
+    
+    Attributes:
+        device (torch.device): The device on which to run the model ('cuda' or 'cpu').
+        model (nn.Module): The neural network model.
+        criterion (nn.Module): The loss function used during training.
+        optimizer (torch.optim.Optimizer): The optimizer used during training.
+        scheduler (torch.optim.lr_scheduler.ReduceLROnPlateau): The learning rate scheduler.
+        num_epochs (int): The number of epochs to train for.
+    """
+    
     def __init__(self, network, epochs):
+        """
+        Initializes the Model with the given network and number of epochs.
+        
+        Args:
+            network (nn.Module): The neural network to train.
+            epochs (int): The number of epochs to train the model.
+        """
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         self.model = network.to(self.device)
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=0.02)
         self.scheduler = ReduceLROnPlateau(self.optimizer, mode='min', factor=0.1, patience=2)
-        self.num_epochs=epochs
+        self.num_epochs = epochs
 
-    def train(self,train_loader):   
-        #early stopping variables
-        prev_loss=float('inf')
-        worse_loss_counter=0
+    def train(self, train_loader):
+        """
+        Trains the model on the given training data.
+        
+        Args:
+            train_loader (DataLoader): The data loader for the training dataset.
+        """
+        prev_loss = float('inf')
+        worse_loss_counter = 0
         
         for epoch in range(self.num_epochs):
             self.model.train()
             running_loss = 0.0
-            batches=0
+            batches = 0
             for inputs, labels, paths in train_loader:
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 print(f"Batches: {batches}", end="\r")
-                batches+=1
+                batches += 1
                 self.optimizer.zero_grad()
                 outputs = self.model(inputs)
                 loss = self.criterion(outputs, labels)
                 loss.backward()
                 self.optimizer.step()
                 running_loss += loss.item()
-                
-
+            
             print(f"Epoch {epoch+1}/{self.num_epochs}, Loss: {running_loss/len(train_loader)}")
 
-            #early stopping checking
-            if (running_loss>prev_loss):
-                worse_loss_counter+=1
-                if (worse_loss_counter>3): #patience
+            # Early stopping checking
+            if running_loss > prev_loss:
+                worse_loss_counter += 1
+                if worse_loss_counter > 3:  # patience
                     print("Early stopping, results are not improving fast enough")
-                    break;
+                    break
             
-            prev_loss=running_loss
-                        
+            prev_loss = running_loss
 
-    def predict (self, test_loader):
-        #dictionary for storing results
-        results={}
+    def predict(self, test_loader):
+        """
+        Makes predictions on the test data and computes the accuracy.
+        
+        Args:
+            test_loader (DataLoader): The data loader for the test dataset.
+        
+        Returns:
+            dict: A dictionary with the image paths as keys and the true and predicted labels as values.
+        """
+        results = {}
         
         self.model.eval()
         correct = 0
@@ -118,11 +182,10 @@ class Model():
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
 
-                #saving info in results
+                # Saving info in results
                 for path, true_label, pred_label in zip(paths, labels.cpu().numpy(), predicted.cpu().numpy()):
-                    results[path]=[true_label, pred_label]
+                    results[path] = [true_label, pred_label]
         
         accuracy = 100 * correct / total
         print(f"Test Accuracy: {accuracy}%")
         return results
-   
