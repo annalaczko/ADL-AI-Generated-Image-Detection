@@ -8,7 +8,7 @@ build:
   os: ubuntu-lts-latest
   tools:
     python:
-      version: "3.11.7"             # Specify the Python version
+      version: "3.11"             # Specify the Python version
       install:
         - requirements: docs/requirements.txt
 
