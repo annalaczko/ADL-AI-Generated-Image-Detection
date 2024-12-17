@@ -5,3 +5,4 @@ test\_Preprocess module
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
