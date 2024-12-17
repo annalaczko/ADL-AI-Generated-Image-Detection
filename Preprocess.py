@@ -7,9 +7,9 @@ import random
 import numpy as np
 import cv2
 
-class Process:
+class Process():
     """
-    Class for processing raw image data by applying transformations, augmentations,
+    Class for processing raw image data by applying transformations, augmentations, 
     and saving processed images in different directories.
     """
 
@@ -17,12 +17,13 @@ class Process:
         """
         Initializes the Process class.
 
-        :param raw_dir: Path to the directory containing raw images.
-        :param process_dir: Path where processed images will be saved.
-        :param image_size: Desired size for the images.
-        :param delete_process_dir: Whether to delete the existing processed directory before creating new one.
-        :param batch_size: Number of images to process at once.
-        :param aug_amount: Number of augmentations per image (only for training).
+        Parameters:
+            raw_dir (str): Path to the directory containing raw images.
+            process_dir (str): Path where processed images will be saved.
+            image_size (tuple): Desired size for the images.
+            delete_process_dir (bool): Whether to delete the existing processed directory before creating new one.
+            batch_size (int): Number of images to process at once.
+            aug_amount (int): Number of augmentations per image (only for training).
         """
         self.RAW_DIR = raw_dir
         self.PROCESSED_DIR = process_dir
@@ -54,12 +55,13 @@ class Process:
 
     def run(self, train_ratio, val_ratio, fraction=1):
         """
-        Runs the image processing pipeline: processes images by categories, applies transformations,
+        Runs the image processing pipeline: processes images by categories, applies transformations, 
         and creates dataset splits for training, validation, and testing.
 
-        :param train_ratio: Proportion of data for training.
-        :param val_ratio: Proportion of data for validation.
-        :param fraction: Fraction of data to process (default is 1 for full dataset).
+        Parameters:
+            train_ratio (float): Proportion of data for training.
+            val_ratio (float): Proportion of data for validation.
+            fraction (float): Fraction of data to process (default is 1 for full dataset).
         """
         os.makedirs(self.PROCESSED_DIR, exist_ok=True)
         for category in self.LABELS:
@@ -67,14 +69,15 @@ class Process:
 
     def process_label(self, train_ratio, val_ratio, label, size, fraction):
         """
-        Processes the images for one label (fake/real), splits the dataset into
+        Processes the images for one label (fake/real), splits the dataset into 
         train/validation/test, and applies transformations.
 
-        :param train_ratio: Proportion of data for training.
-        :param val_ratio: Proportion of data for validation.
-        :param label: Label/category of the images (fake/real).
-        :param size: Desired size for the images.
-        :param fraction: Fraction of data to process.
+        Parameters:
+            train_ratio (float): Proportion of data for training.
+            val_ratio (float): Proportion of data for validation.
+            label (str): Label/category of the images (fake/real).
+            size (tuple): Desired size for the images.
+            fraction (float): Fraction of data to process.
         """
         print(f"Working on {label}")
 
@@ -117,10 +120,13 @@ class Process:
         """
         Generates a unique filename by appending a counter to the base name.
 
-        :param base_path: Directory path to save the image.
-        :param base_name: Base name for the image.
-        :param counter: Counter to ensure uniqueness.
-        :return: A unique filename for the image.
+        Parameters:
+            base_path (str): Directory path to save the image.
+            base_name (str): Base name for the image.
+            counter (int): Counter to ensure uniqueness.
+
+        Returns:
+            str: A unique filename for the image.
         """
         while True:
             image_name = f"{base_name}_{counter}.jpg"
@@ -134,10 +140,11 @@ class Process:
         """
         Processes a list of images, applies transformations, and saves them in the appropriate folder.
 
-        :param images: List of image file paths to process.
-        :param category: Category for the images (train/valid/test).
-        :param size: Desired size for the images.
-        :param label: Label/category of the images (fake/real).
+        Parameters:
+            images (list): List of image file paths to process.
+            category (str): Category for the images (train/valid/test).
+            size (tuple): Desired size for the images.
+            label (str): Label/category of the images (fake/real).
         """
         ROOT_DIR = os.path.join(self.PROCESSED_DIR, f"{size[0]}")
 
@@ -153,3 +160,84 @@ class Process:
         else:
             rgb_path = os.path.join(ROOT_DIR, "test/rgb")
             edge_path = os.path.join(ROOT_DIR, "test/edge")
+            sharpen_path = os.path.join(ROOT_DIR, "test/sharpen")
+
+        os.makedirs(rgb_path, exist_ok=True)
+
+        image_counter = 0
+
+        # Processing images in batches
+        for i in tqdm(range(0, len(images), self.BATCH_SIZE), desc=f"Processing {category}"):
+            batch = images[i:i + self.BATCH_SIZE]
+            for img_path in batch:
+                img = Image.open(img_path).convert("RGB")
+
+                resized_img_name = self.get_unique_filename(rgb_path, label, image_counter)
+
+                # Save a simple resized version
+                resized_img = self.resize_transform(img)
+
+                # Apply filters and save
+                self.make_filters(resized_img, resized_img_name, edge_path, sharpen_path)
+
+                # Convert tensor to PIL and save
+                resized_img = self.save_transform(resized_img)
+                resized_img_path = os.path.join(rgb_path, resized_img_name)
+                resized_img.save(resized_img_path)
+
+                image_counter += 1
+
+                # Optionally augment training images
+                if category == "train":
+                    for aug_idx in range(self.AUG_AMOUNT):
+                        aug_img_name = self.get_unique_filename(rgb_path, label, image_counter)
+
+                        # Apply augmentation
+                        aug_img = self.augmentation_transforms(img)
+
+                        # Apply filters and save
+                        self.make_filters(aug_img, aug_img_name, edge_path, sharpen_path)
+
+                        # Convert tensor to PIL and save
+                        aug_img = self.save_transform(aug_img)
+                        aug_img_path = os.path.join(rgb_path, aug_img_name)
+                        aug_img.save(aug_img_path)
+
+                        image_counter += 1
+
+    def make_filters(self, tensor_image, filename, edge_path, sharpen_path):
+        """
+        Applies edge detection and sharpening filters to the image, then saves the results.
+
+        Parameters:
+            tensor_image (Tensor): The image tensor to process.
+            filename (str): The filename for saving the filtered images.
+            edge_path (str): Path to save the edge-filtered images.
+            sharpen_path (str): Path to save the sharpen-filtered images.
+        """
+        image = tensor_image.permute(1, 2, 0).numpy()
+
+        os.makedirs(edge_path, exist_ok=True)
+        os.makedirs(sharpen_path, exist_ok=True)
+
+        # Edge detection kernel
+        kernel_edge = np.array([[-1, -1, -1],
+                                [-1, 8, -1],
+                                [-1, -1, -1]])
+
+        # Sharpening kernel
+        kernel_sharpen = np.array([[0, -1, 0],
+                                   [-1, 5, -1],
+                                   [0, -1, 0]])
+
+        # Apply edge filter and save result
+        edge_result = cv2.filter2D(image, -1, kernel_edge)
+
+        edge_output_path = os.path.join(edge_path, filename)
+        cv2.imwrite(edge_output_path, edge_result)
+
+        # Apply sharpen filter and save result
+        sharpen_result = cv2.filter2D(image, -1, kernel_sharpen)
+
+        sharpen_output_path = os.path.join(sharpen_path, filename)
+        cv2.imwrite(sharpen_output_path, sharpen_result)
