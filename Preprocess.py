@@ -7,7 +7,7 @@ import random
 import numpy as np
 import cv2
 
-class Process():
+class Process:
     """
     Class for processing raw image data by applying transformations, augmentations,
     and saving processed images in different directories.

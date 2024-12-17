@@ -14,11 +14,4 @@ documentation for details.
    :maxdepth: 2
    :caption: Contents:
 
-   Preprocess
-   NeuralNetworkDIY
-
-.. automodule:: Preprocess
-   :members:
-
-.. automodule:: NeuralNetworkDIY
-   :members:
+   modules

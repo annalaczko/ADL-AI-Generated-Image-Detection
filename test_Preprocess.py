@@ -5,7 +5,20 @@ from Preprocess import Process
 from PIL import Image
 
 class TestProcess(unittest.TestCase):
+    """
+    Unit tests for the Process class responsible for image preprocessing, 
+    including image processing, directory creation, and augmentation.
+
+    Tests include:
+        - Image processing for different labels.
+        - Creation of processed images.
+        - Application of augmentation to images.
+    """
     def setUp(self):
+        """
+        Sets up the test environment by creating directories for raw and processed images
+        and populating the raw directory with dummy images for testing purposes.
+        """
         # Set up paths for testing
         self.raw_dir = 'test_raw'
         self.processed_dir = 'test_processed'
@@ -25,14 +38,21 @@ class TestProcess(unittest.TestCase):
                 img.save(image_path)
 
     def tearDown(self):
-        # Clean up test directories
+        """
+        Cleans up by removing the raw and processed directories after each test
+        to ensure a fresh environment for subsequent tests.
+        """
         if os.path.exists(self.raw_dir):
             shutil.rmtree(self.raw_dir)
         if os.path.exists(self.processed_dir):
             shutil.rmtree(self.processed_dir)
 
     def test_process_label(self):
-        # Test if the directories are created and images are processed
+        """
+        Tests the process_label method to ensure that:
+        - The processed directory is created.
+        - Images are correctly processed and saved in the train directory.
+        """
         processor = Process(
             raw_dir=self.raw_dir,
             process_dir=self.processed_dir,
@@ -48,11 +68,14 @@ class TestProcess(unittest.TestCase):
         train_dir = os.path.join(self.processed_dir, f"{self.image_size[0]}/train/rgb")
         self.assertTrue(os.path.exists(train_dir), "Train directory should be created.")
         
-        # Verify if at least one image was processed (based on your logic, this may need adjustment)
+        # Verify if at least one image was processed
         self.assertGreater(len(os.listdir(train_dir)), 0, "Train directory should contain processed images.")
 
     def test_create_images(self):
-        # Test if images are being created properly in the processed folder
+        """
+        Tests the create_images method to ensure that:
+        - Images are processed and saved in the processed directory.
+        """
         processor = Process(
             raw_dir=self.raw_dir,
             process_dir=self.processed_dir,
@@ -72,7 +95,10 @@ class TestProcess(unittest.TestCase):
         self.assertGreater(len(os.listdir(processed_dir)), 0, "Processed images should be created.")
 
     def test_augmentation(self):
-        # Test if augmentation is applied
+        """
+        Tests the application of augmentation to images to ensure that:
+        - The augmentation increases the number of images in the processed directory.
+        """
         processor = Process(
             raw_dir=self.raw_dir,
             process_dir=self.processed_dir,
