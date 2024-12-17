@@ -4,3 +4,7 @@ tqdm==4.67.1
 numpy==1.26.4
 torch==2.5.1
 torchvision==0.20.1
+Pillow
+opencv-pytho
+sphinx
+sphinx_rtd_theme
