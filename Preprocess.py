@@ -13,7 +13,7 @@ class Process():
     and saving processed images in different directories.
     """
 
-    def __init__(self, raw_dir, process_dir, image_size, delete_process_dir=False, batch_size=1000, aug_amount=0):
+    def __init__(self, raw_dir, process_dir, image_size, delete_process_dir=False, batch_size=1000, aug_amount=0, filters=False):
         """
         Initializes the Process class.
 
@@ -31,6 +31,7 @@ class Process():
         self.IMAGE_SIZE = image_size
         self.BATCH_SIZE = batch_size
         self.AUG_AMOUNT = aug_amount
+        self.FILTERS = filters
 
         # Deleting the original processed_dir to make the new dataset
         if delete_process_dir and os.path.exists(self.PROCESSED_DIR):
@@ -82,11 +83,10 @@ class Process():
         print(f"Working on {label}")
 
         # Get directory for label
-        raw_path = os.path.join(self.RAW_DIR, label)
-
+        raw_path = os.path.join(self.RAW_DIR, label)  
         # Getting images from the directory
         image_paths = [os.path.join(raw_path, f) for f in os.listdir(raw_path) if f.endswith((".png", ".jpg", ".jpeg"))]
-
+        
         if len(image_paths) == 0:
             print(f"No images found in {raw_path}")
             return
@@ -109,7 +109,7 @@ class Process():
         train_paths = image_paths[:train_split_index]
         val_paths = image_paths[train_split_index:val_split_index]
         test_paths = image_paths[val_split_index:]
-
+        
         self.create_images(train_paths, "train", size, label)
         self.create_images(val_paths, "valid", size, label)
 
@@ -178,7 +178,8 @@ class Process():
                 resized_img = self.resize_transform(img)
 
                 # Apply filters and save
-                self.make_filters(resized_img, resized_img_name, edge_path, sharpen_path)
+                if (self.FILTERS):
+                    self.make_filters(resized_img, resized_img_name, edge_path, sharpen_path)
 
                 # Convert tensor to PIL and save
                 resized_img = self.save_transform(resized_img)
