@@ -39,6 +39,7 @@ class Process():
 
         # Defining transformations for the images
         self.resize_transform = transforms.Compose([
+            transforms.RandomResizedCrop(self.IMAGE_SIZE, scale=(0.85, 0.95)),
             transforms.Resize(self.IMAGE_SIZE),
             transforms.ToTensor(),
         ])
@@ -51,6 +52,7 @@ class Process():
             transforms.Resize(self.IMAGE_SIZE),
             transforms.ToTensor(),
         ])
+
 
         self.save_transform = transforms.ToPILImage()
 

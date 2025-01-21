@@ -6,68 +6,15 @@
  
 A project made for my Applied Deep Learning Course at TU Wien
 
-## Assignment 1. Initiate
-
-### Chosen project
+## Chosen problem
 
 My chosen topic was Detecting AI-generated images. With my Facebook feed increasingly filled with AI-generated content, I recognized the growing challenge of distinguishing these from genuine images. While I’ve personally become adept at identifying such content, I observed that many of my friends and family struggled, often falling victim to clickbait posts.
 
-Through this project, I developed tools to help media users recognize fake content effectively. These tools not only assist in detecting fake information and combating the growing distrust of visual arts but also provide support for artists concerned about their livelihoods being affected by the overuse of AI-generated art.
+During developing my project I tried several datasets and methods to realize this task. After several trial and error I only found one dataset that was recent, large and consistent enough to be usable. However, it had a downside. This dataset only consist of human faces, so because of this, I had to limit my project's capabilities to be able to identify fake pictures of faces. Honestly I don't really mind as most of the AI photos we have a problem with are the images that try to imitate humans (and they are really successfull at that) and most conflicts would also arise from these. 
 
-I am proud to have created a strong model capable of detecting AI-generated images, and in the process, I gained valuable expertise in the methods and techniques required for tackling this challenge.
+### My solution
 
-Now, we can find several big datasets for this task online. I checked
-
-### The approach
-I want to implement a (hopefully) better neural network for this project, so my chosen project type is **Bring your "own" method**. I would like to take a closer look at the methods and models implemented in the papers and use them. I hope that I can identify strengths and weaknesses and make some adjustments that can improve the results.
-
-My network design will probably be a CNN or a dual-stream network, although I want to leave some room to try out new methods if both aren't working for me. Obviously, my first goal is to implement one of them and, with that, reach the precision mentioned in the corresponding paper.
-
-One thing I am also thinking on, is using an ensemble modell, hoping that a corrected weighted version of it could help me generalise the model, and also make it more precise. I want to use cross-validation to avoid overfitting.
-
-For evaluating the results right now, I am undecided between accuracy, precision, recall, F1, ROC-AUC, and the Confusion Matrix. I want to research these metrics more and find more information about them. Of course, to compare my results to the ones in the papers, I have to use the same metrics as they did.
-
-### The dataset(s)
-The three collected papers recommend a wide variety of datasets, and I'm aiming to use those right now.
-
-- Real datasets: CIFAR-10, Flickr-Faces-HQ (FFHQ)
-- Fake datasets: CIFAKE
-
-I also found a Kaggle dataset containing CIFAR-10 and CIFAKE. I would like to read through that, and because I have found multiple sources of information about those, I will use those as my starting datasets.
-
-#### CIFAR-10 and CIFAKE: 
-CIFAR-10 is a subset of the dataset Tiny Images. It contains 60000 images from 10 classes. 
-CIFAKE is a merge of the CIFAR-10 dataset and a similar sized dataset which contains a similar structure of 60000 AI-generated images for the same 10 classes.
-
-### The schedule
-
-Because of my other lecture, I want to do this task in bigger blocks.
-
-| **Task** | **Estimated Time** | **Scheduling** |
-|-------------------------------------------|--------------------|-------------------------|
-| **Data Preparation and research** | 15-20 hours        | 23-10-2024 - 30-10-2024   |
-| **Training the Model(s)** | 20-30 hours        | 23-10-2024 - 30-11-2024   |
-| **Evaluate Performance** | 6-8 hours          | 20-11-2024 - 10-12-2024   |
-| **Ensemble Model** | 10-12 hours        | 20-11-2024 - 10-12-2024   |
-| **Comparing Ensemble to Individual Models**| 4-5 hours         | 05-12-2024 - 12-12-2024   |
-| **Buffer time** | -                  | 12-12-2024 - 17-12-2024   |
-| **Documentation for Assignment 2** | 8-10 hours        | Simultaneously with every previous step|
-| **Building application** | 20-25 hours        | 28-12-2024 - 10-01-2025|
-| **Final Report and preparing for presentation** | 10-15 hours        | 10-01-2025 - 15-01-2025|
-| **Buffer time** | -                  | 15-01-2025 - 21-01-2025   |
-
-
-## Assignment 2. Hacking
-
-### Changes from Assignment 1.
-
-I got my feedback for Assignment 1., which mentioned that it would be better to expand the CIFAKE dataset with another one to include images that better represent the state-of-the-art. With this in mind, I deleted CIFAKE because I felt that using those would only distort the results, and I wanted to use only newer images. I tried several datasets, but as I had limited time because I could not start the project in time and also had storage problems on my PC, I chose the [140k Real and Fake Faces](https://www.kaggle.com/datasets/xhlulu/140k-real-and-fake-faces/versions/1/data). 
-
-This, of course, limits the model's capabilities as it will be only trained on portraits. However, I also felt that recognising faces as fake or not is really important because of the many deepfakes that are around nowadays. Also, for this dataset, I could see that some people had pretty good results, so I could rely on that (before, I had found several datasets that were simply not good enough for classification).
-
-### Workflow
-
-I started with only notebooks. I made one for preprocessing and one for the neural network and training. First, I used smaller images, like CIFAKE, to see if I could get even good results using tiny pictures. This showed promise, but I quickly realised that having bigger images dramatically improves the results. I quickly changed the preprocessing to (128,128) pictures.
+My solution is a basic application that can classify photos of human faces being AI-generated or not. In the end I trained my original dataset's 95% to get a hopefully quite accurate model. The rest is my test set that can be used to try out the application. The application can be used with self-sourced images too, as the UI interface includes a cropping function so we can crop the picture to only contain the faces. This is really important as the model was only trained such photos that only included a face from close-up.
 
 **What kind of network I made**
 
@@ -87,7 +34,9 @@ After the code worked in the notebooks, I manually transformed them into .py-s a
 
 ### Goals and Results
 
-For this task, I chose the standard accuracy to measure my model's success. My goal was to classify at least 75-80 % of the pictures correctly from the validation set.
+#### Assignment 2
+
+For the second part of the assignment, I chose the standard accuracy to measure my model's success. My goal was to classify at least 75-80 % of the pictures correctly from the validation set.
 
 In the end, I achieved a 95.02% accuracy, which was a shock (although a positive one). 
 
@@ -97,6 +46,24 @@ For more information, I added a confusion matrix to analyse the accuracy of the 
 |-----------|------|------|
 |Predicted 0| 18076|   511|
 |predicted 1|  2924| 47489|
+
+#### Assignment 3
+
+After finishing the third assignment, I wanted to exploit the opportunity to test my model on some self-sourced images, and that's when I realised that it was not nearly as good as I had hoped. 
+
+First, the model immediately classified every image (even the ones from the original set!) as real when I cropped a part of the picture (no matter how small the change was). I immediately thought that the generated pictures could have included something unnoticeable at the very edge that identified these pictures quite easily. So, I reactivated the image augmentation part of my code (which does random rotation, random crop, and random color jitter), and I also did a random crop on the original image. 
+
+This helped a bit, but sadly I could not get closer to the originally assumed accuracy. I am going to be honest, I also noticed it too late and did not have any time to figure out the reason why, and also collect enough data from a certainly independent (from the 140k faces dataset) source to create a new test set to get a better estimation of the effectiveness.
+
+The model still performs accurately on the test set from the original dataset. This problem only occurs on randomly sourced images from the internet and it also it still changes opinion rapidly when changing the crop size. My biggest suspicion is that this dataset has some Data Leakage going on, and the model picks up on that. If I had time, I would visualise the parts of the images the model uses for classifying.
+
+### Biggest Take-aways
+
+I just mentioned, but certainly one of the biggest take-aways is the realisation of the decreased accuracy. I cannot say for sure but it missclassified at least 3 out of the 5 randomly chosen AI generated image from the internet. 
+
+For a next model like this, I would try to gather pictures from different sources. I thought I don't need that, as I have more than 850 000 images (with augmentation) just for training.
+
+Building a UI is really easy if we're using one of the tools.
 
 ### Actual Schedule compared to the planned one
 
@@ -109,11 +76,11 @@ For more information, I added a confusion matrix to analyse the accuracy of the 
 | **Comparing Ensemble to Individual Models** | 4-5 hours         | 05-12-2024 - 12-12-2024   | 1 hours | 13-12-2024 |
 | **Buffer time** | -                  | 12-12-2024 - 17-12-2024   | - | - |
 | **Documentation for Assignment 2** | 8-10 hours        | Simultaneously with every previous step| 6 hours | 14-12-2024 - 17-12-2024 |
-| **Building application** | 20-25 hours        | 28-12-2024 - 10-01-2025| ||
-| **Final Report and preparing for presentation** | 10-15 hours        | 10-01-2025 - 15-01-2025|||
+| **Building application** | 20-25 hours        | 28-12-2024 - 10-01-2025| 8 hours | 15-01-2025 - 17-01-2025 |
+| **Final Report and preparing for presentation** | 5 hours        | 10-01-2025 - 15-01-2025| 5 hours |16-01-2025 - 21-01-2025|
 | **Buffer time** | -                  | 15-01-2025 - 21-01-2025   |||
 
-As it can be seen, the biggest thing I learned and miscalculated that data collection takes much more time.
+As it can be seen, the biggest thing I learned and miscalculated that data collection takes much more time. Also, the third part took much less time.
 
 ### How to Set Up and Run the Project
 
@@ -134,7 +101,7 @@ Open up console in the root folder and run
 
 #### 4. Run the notebook
 
-To see the results simply open Notebook.ipynb and run it.
+To see the results simply open Notebook - Assignment 2.ipynb and run it.
 
 #### 5. Access Documentation
 
@@ -147,6 +114,10 @@ To run tests:
 ```python -m unittest discover .```
 
 The tests also run automatically on GitHub on 3 differrent python versions.
+
+#### 7. Run the UI
+
+Open User Interface.ipynb and run the notebook. In the end, the UI will open in your browser. You can uploade one picture at a time and you can see the predicted class and the confidence value next to it.
 
 ### LLM use
 

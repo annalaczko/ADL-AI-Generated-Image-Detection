@@ -170,33 +170,46 @@ class Model():
             
             prev_loss = running_loss
 
-    def predict(self, test_loader):
+    def predict(self, input_data):
         """
-        Makes predictions on the test data and computes the accuracy.
-
-        :param test_loader: The data loader for the test dataset.
-        :type test_loader: DataLoader
-
-        :return: A dictionary with the image paths as keys and the true and predicted labels as values.
-        :rtype: dict
+        Makes predictions on the input data.
+    
+        :param input_data: A single preprocessed image tensor or a DataLoader object.
+        :type input_data: torch.Tensor or DataLoader
+    
+        :return: If input is a tensor, returns the predicted class and confidence.
+                 If input is a DataLoader, returns a dictionary with predictions.
+        :rtype: tuple or dict
         """
-        results = {}
-        
-        self.model.eval()
-        correct = 0
-        total = 0
-        with torch.no_grad():
-            for inputs, labels, paths in test_loader:
-                inputs, labels = inputs.to(self.device), labels.to(self.device)
-                outputs = self.model(inputs)
-                _, predicted = torch.max(outputs, 1)
-                total += labels.size(0)
-                correct += (predicted == labels).sum().item()
-
-                # Saving info in results
-                for path, true_label, pred_label in zip(paths, labels.cpu().numpy(), predicted.cpu().numpy()):
-                    results[path] = [true_label, pred_label]
-        
-        accuracy = 100 * correct / total
-        print(f"Test Accuracy: {accuracy}%")
-        return results
+        self.model.eval()  # Ensure the model is in evaluation mode
+    
+        if isinstance(input_data, torch.Tensor):  # Single image prediction
+            with torch.no_grad():
+                output = self.model(input_data.to(self.device))
+                probabilities = torch.nn.functional.softmax(output[0], dim=0)
+                predicted_class = probabilities.argmax().item()
+                confidence = probabilities[predicted_class].item()
+                return predicted_class, confidence
+    
+        elif isinstance(input_data, DataLoader):  # Batch prediction
+            results = {}
+            correct = 0
+            total = 0
+            with torch.no_grad():
+                for inputs, labels, paths in input_data:
+                    inputs, labels = inputs.to(self.device), labels.to(self.device)
+                    outputs = self.model(inputs)
+                    _, predicted = torch.max(outputs, 1)
+                    total += labels.size(0)
+                    correct += (predicted == labels).sum().item()
+    
+                    # Saving info in results
+                    for path, true_label, pred_label in zip(paths, labels.cpu().numpy(), predicted.cpu().numpy()):
+                        results[path] = [true_label, pred_label]
+            
+            accuracy = 100 * correct / total
+            print(f"Test Accuracy: {accuracy}%")
+            return results
+        else:
+            raise ValueError("Input must be a torch.Tensor for a single image or a DataLoader for batch predictions.")
+    
