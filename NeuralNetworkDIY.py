@@ -210,6 +210,4 @@ class Model():
             accuracy = 100 * correct / total
             print(f"Test Accuracy: {accuracy}%")
             return results
-        else:
-            raise ValueError("Input must be a torch.Tensor for a single image or a DataLoader for batch predictions.")
     
