@@ -1,171 +1,215 @@
-# ADL - AI Generated Image Detection *(Bring your own method)*
- 
-**Name:** Anna Laczkó
- 
-**Matriculation number:** 12347556 
- 
-A project made for my Applied Deep Learning Course at TU Wien
+# AI-Generated Image Detection
 
-## Assignment 1. Initiate
+[![Tests](https://github.com/annalaczko/ADL-AI-Generated-Image-Detection/actions/workflows/python-package.yml/badge.svg)](https://github.com/annalaczko/ADL-AI-Generated-Image-Detection/actions/workflows/python-package.yml)
+![Python](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11-blue)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.5.1-orange)
+![Accuracy](https://img.shields.io/badge/validation%20accuracy-95.02%25-brightgreen)
 
-### Chosen project
+A CNN-based binary classifier that distinguishes **real human face photographs** from **AI-generated ones**, achieving **95.02% accuracy** on the 140k Real and Fake Faces dataset.
 
-My chosen topic is Detecting AI-generated images. Nowadays, my Facebook feed is filled with AI-generated content. I am good at recognising these, but most of my friends and family struggle. It is also quite scary to see all those people in the comments who are victims of the clickbait posts. 
+Built as part of the *Applied Deep Learning* course at TU Wien.
 
-I think using some tools to help these media users recognise fake content would be beneficial. Not only would it help detect fake information and stop the growing distrust of visual arts, but it would also support the artist who is concerned about their livelihood being taken away by the overuse of AI art. I am motivated to see how strong a model I can put together for detecting these images, and I want to familiarise myself with methods to help this process.
+---
 
-### The approach
-I want to implement a (hopefully) better neural network for this project, so my chosen project type is **Bring your "own" method**. I would like to take a closer look at the methods and models implemented in the papers and use them. I hope that I can identify strengths and weaknesses and make some adjustments that can improve the results.
+## Table of Contents
 
-My network design will probably be a CNN or a dual-stream network, although I want to leave some room to try out new methods if both aren't working for me. Obviously, my first goal is to implement one of them and, with that, reach the precision mentioned in the corresponding paper.
+- [Overview](#overview)
+- [Model Architecture](#model-architecture)
+- [Results](#results)
+- [Dataset](#dataset)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Usage](#usage)
+- [Documentation](#documentation)
+- [LLM Use](#llm-use)
+- [References](#references)
 
-One thing I am also thinking on, is using an ensemble modell, hoping that a corrected weighted version of it could help me generalise the model, and also make it more precise. I want to use cross-validation to avoid overfitting.
+---
 
-For evaluating the results right now, I am undecided between accuracy, precision, recall, F1, ROC-AUC, and the Confusion Matrix. I want to research these metrics more and find more information about them. Of course, to compare my results to the ones in the papers, I have to use the same metrics as they did.
+## Overview
 
-### The dataset(s)
-The three collected papers recommend a wide variety of datasets, and I'm aiming to use those right now.
+With the rapid rise of AI-generated images on social media, many users struggle to distinguish real photographs from synthetic ones. This project builds a lightweight CNN classifier focused on detecting AI-generated human faces — the category most commonly involved in misinformation and deepfakes.
 
-- Real datasets: CIFAR-10, Flickr-Faces-HQ (FFHQ)
-- Fake datasets: CIFAKE
+Key design decisions (inspired by the CIFAKE paper):
+- **Large kernel size (5x5):** captures fine-grained peripheral details, which the CIFAKE paper identified as the primary cue for detecting AI images
+- **Strided convolutions instead of pooling:** avoids discarding spatial detail that the model relies on
+- **Progressive channel doubling (16 → 32 → 64 → 128):** learns increasingly abstract feature representations
+- **Batch normalisation after every conv layer:** stabilises training and improves generalisation
 
-I also found a Kaggle dataset containing CIFAR-10 and CIFAKE. I would like to read through that, and because I have found multiple sources of information about those, I will use those as my starting datasets.
+The preprocessing pipeline also supports generating **edge-detected** and **sharpened** versions of each image, intended for a future ensemble model that processes multiple filtered views of the same image simultaneously.
 
-#### CIFAR-10 and CIFAKE: 
-CIFAR-10 is a subset of the dataset Tiny Images. It contains 60000 images from 10 classes. 
-CIFAKE is a merge of the CIFAR-10 dataset and a similar sized dataset which contains a similar structure of 60000 AI-generated images for the same 10 classes.
+---
 
-### The schedule
+## Model Architecture
 
-Because of my other lecture, I want to do this task in bigger blocks.
+The network has 4 convolutional blocks followed by 2 fully-connected layers:
 
-| **Task** | **Estimated Time** | **Scheduling** |
-|-------------------------------------------|--------------------|-------------------------|
-| **Data Preparation and research** | 15-20 hours        | 23-10-2024 - 30-10-2024   |
-| **Training the Model(s)** | 20-30 hours        | 23-10-2024 - 30-11-2024   |
-| **Evaluate Performance** | 6-8 hours          | 20-11-2024 - 10-12-2024   |
-| **Ensemble Model** | 10-12 hours        | 20-11-2024 - 10-12-2024   |
-| **Comparing Ensemble to Individual Models**| 4-5 hours         | 05-12-2024 - 12-12-2024   |
-| **Buffer time** | -                  | 12-12-2024 - 17-12-2024   |
-| **Documentation for Assignment 2** | 8-10 hours        | Simultaneously with every previous step|
-| **Building application** | 20-25 hours        | 28-12-2024 - 10-01-2025|
-| **Final Report and preparing for presentation** | 10-15 hours        | 10-01-2025 - 15-01-2025|
-| **Buffer time** | -                  | 15-01-2025 - 21-01-2025   |
+![Model Architecture](model_structure_high_quality.png)
 
+| Layer | Type | Channels | Kernel | Stride |
+|-------|------|----------|--------|--------|
+| conv1 | Conv2d + BN + ReLU | 3 → 16 | 5x5 | 2 |
+| conv2 | Conv2d + BN + ReLU | 16 → 32 | 5x5 | 2 |
+| conv3 | Conv2d + BN + ReLU | 32 → 64 | 5x5 | 3 |
+| conv4 | Conv2d + BN + ReLU | 64 → 128 | 4x4 | 3 |
+| fc1 | Linear + ReLU | flattened → 512 | — | — |
+| fc2 | Linear (output) | 512 → 2 | — | — |
 
-## Assignment 2. Hacking
+Input images are resized to **128×128 RGB** before being fed to the network. The model is trained with the Adam optimiser (lr=0.02) and a `ReduceLROnPlateau` scheduler, and includes early stopping with a patience of 3 epochs.
 
-### Changes from Assignment 1.
+---
 
-I got my feedback for Assignment 1., which mentioned that it would be better to expand the CIFAKE dataset with another one to include images that better represent the state-of-the-art. With this in mind, I deleted CIFAKE because I felt that using those would only distort the results, and I wanted to use only newer images. I tried several datasets, but as I had limited time because I could not start the project in time and also had storage problems on my PC, I chose the [140k Real and Fake Faces](https://www.kaggle.com/datasets/xhlulu/140k-real-and-fake-faces/versions/1/data). 
+## Results
 
-This, of course, limits the model's capabilities as it will be only trained on portraits. However, I also felt that recognising faces as fake or not is really important because of the many deepfakes that are around nowadays. Also, for this dataset, I could see that some people had pretty good results, so I could rely on that (before, I had found several datasets that were simply not good enough for classification).
+Evaluated on the held-out validation set (30% of the dataset, ~69,000 images):
 
-### Workflow
+| Metric | Value |
+|--------|-------|
+| Validation Accuracy | **95.02%** |
 
-I started with only notebooks. I made one for preprocessing and one for the neural network and training. First, I used smaller images, like CIFAKE, to see if I could get even good results using tiny pictures. This showed promise, but I quickly realised that having bigger images dramatically improves the results. I quickly changed the preprocessing to (128,128) pictures.
+**Confusion Matrix:**
 
-**What kind of network I made**
+|  | True Real (0) | True Fake (1) |
+|---|---|---|
+| **Predicted Real (0)** | 18,076 | 511 |
+| **Predicted Fake (1)** | 2,924 | 47,489 |
 
-The structure is simple; I have four convolutional layers and two fully connected layers. I focused on optimising the layers.  For this, I did some research. The paper on CIFAKE mentioned that most AI images are recognised not by the central object but by the surrounding more minor details. This is why I tried to shape my network to pick up those details:
+> **Note on generalisation:** After testing on independently sourced internet images, the model showed reduced performance — most likely due to data leakage in the original dataset (the model may have been picking up dataset-specific artefacts rather than genuine AI-generation signals). See [Report.md](Report.md) for a detailed discussion.
 
-- I added as many channels as I could
-- I added a 5x5 kernel, but I added stride, as I thought that most of the details would be repetitive (and this is also from my own experience), and it would be redundant to go one by one.
-- I stayed away from pooling
+---
 
-As I mentioned before, I tried to use smaller pictures. I also thought that if my time allowed it, I would train on three different sizes and then do majority voting. With this, I could even extract different features from the images, but sadly, the lower-resolution pictures were not that effective. 
+## Dataset
 
-Another attempt at an Ensemble Model was an idea that I found in [this](https://paperswithcode.com/paper/ai-generated-image-detection-using-a-cross) paper. Here, they tried to make filtered versions of the pictures, highlighting edges and sharpening the images and using that to identify differences between real and AI-generated images. I implemented the filtration in Preprocess.py, but in the end, due to time constraints, I did not use those images for the final training. However, I did some testing with them, and Edge and Sharpen proved to be quite good.
+The model was trained on the [140k Real and Fake Faces](https://www.kaggle.com/datasets/xhlulu/140k-real-and-fake-faces/versions/1/data) Kaggle dataset:
 
-I still think it would be interesting to make an ensemble with them; however, I did not have time to implement that.
+- **Real faces:** sourced from Flickr via the FFHQ dataset
+- **Fake faces:** generated by StyleGAN
 
-After the code worked in the notebooks, I manually transformed them into .py-s and made some tests for them.
+A restructured version of the dataset (organised into `fake/` and `real/` subdirectories, ready for the preprocessing pipeline) is available [here](https://drive.google.com/drive/folders/1tqMOQfYcUJrGCt6cJPvw_NHCmXyN82Cj?usp=sharing).
 
-### Goals and Results
+The preprocessing pipeline (`Preprocess.py`) handles:
+- Resizing to the target resolution with a random crop for variety
+- Data augmentation (random crop + colour jitter) for the training set
+- Optional edge detection and sharpening filters for ensemble experiments
 
-For this task, I chose the standard accuracy to measure my model's success. My goal was to classify at least 75-80 % of the pictures correctly from the validation set.
+---
 
-In the end, I achieved a 95.02% accuracy, which was a shock (although a positive one). 
+## Project Structure
 
-For more information, I added a confusion matrix to analyse the accuracy of the two labels.
+```
+ADL-AI-Generated-Image-Detection/
+│
+├── NeuralNetworkDIY.py              # CNN architecture (ClassifierNetwork) and training wrapper (Model)
+├── Preprocess.py                    # Image preprocessing and augmentation pipeline
+├── test_NeuralNetworkDIY.py         # Unit tests for the model
+├── test_Preprocess.py               # Unit tests for preprocessing
+│
+├── Notebook - Assignment 2.ipynb    # Main experiment notebook: training, evaluation, confusion matrix
+├── Train_Final_Model.ipynb          # Trains the final model and saves it as ADL_model.pth
+├── User Interface.ipynb             # Gradio-based interactive UI for real/fake classification
+│
+├── ADL_model.pth                    # Trained model weights
+├── model_structure_high_quality.png # Model architecture diagram (generated by torchviz)
+├── model_structure_high_quality.pdf # PDF version of the architecture diagram
+│
+├── Report.md                        # Full project report (all three assignment stages)
+├── environment.yml                  # Conda environment definition
+│
+├── docs/                            # Sphinx documentation source + Python dependencies
+│   └── requirements.txt             # pip requirements file
+│
+└── archive/                         # Earlier experimental notebooks kept for reference
+```
 
-|           |True 0|True 1|
-|-----------|------|------|
-|Predicted 0| 18076|   511|
-|predicted 1|  2924| 47489|
+---
 
-### Actual Schedule compared to the planned one
+## Getting Started
 
-| **Task** | **Estimated Time** | **Scheduling** | **Spent time** | **Actual Scheduling** | 
-|-------------------------------------------|--------------------|-------------------------|--|--|
-| **Data Preparation and research** | 15-20 hours        | 23-10-2024 - 30-10-2024   | 30-35 hours | 04-12-2024 - 15-12-2024|
-| **Training the Model(s)** | 20-30 hours        | 23-10-2024 - 30-11-2024   | 35-40 hours | 08-12-2024 - 17-12-2024|
-| **Evaluate Performance** | 6-8 hours          | 20-11-2024 - 10-12-2024   | 2 hours | 08-12-2024 - 15-12-2024|
-| **Ensemble Model** | 10-12 hours        | 20-11-2024 - 10-12-2024   | 5 hours | 13-12-2024 |
-| **Comparing Ensemble to Individual Models** | 4-5 hours         | 05-12-2024 - 12-12-2024   | 1 hours | 13-12-2024 |
-| **Buffer time** | -                  | 12-12-2024 - 17-12-2024   | - | - |
-| **Documentation for Assignment 2** | 8-10 hours        | Simultaneously with every previous step| 6 hours | 14-12-2024 - 17-12-2024 |
-| **Building application** | 20-25 hours        | 28-12-2024 - 10-01-2025| ||
-| **Final Report and preparing for presentation** | 10-15 hours        | 10-01-2025 - 15-01-2025|||
-| **Buffer time** | -                  | 15-01-2025 - 21-01-2025   |||
+### 1. Clone the repository
 
-As it can be seen, the biggest thing I learned and miscalculated that data collection takes much more time.
+```bash
+git clone https://github.com/annalaczko/ADL-AI-Generated-Image-Detection.git
+cd ADL-AI-Generated-Image-Detection
+```
 
-### How to Set Up and Run the Project
+### 2. Install dependencies
 
-#### 1. Clone the Repository
+```bash
+pip install -r docs/requirements.txt
+```
 
-git clone https://github.com/your-username/your-repository.git
-cd your-repository
+Or, if you prefer Conda:
 
-#### 2. Download and Extract Data
+```bash
+conda env create -f environment.yml
+conda activate jupyterlab
+pip install -r docs/requirements.txt
+```
 
-Download the dataset from [here](https://drive.google.com/drive/folders/1tqMOQfYcUJrGCt6cJPvw_NHCmXyN82Cj?usp=sharing), and extract it to the root of the project directory. This is a restructured version of the [140k Real and Fake Faces](https://www.kaggle.com/datasets/xhlulu/140k-real-and-fake-faces/versions/1/data) on Kaggle.
+### 3. Download the dataset
 
-#### 3. Install Dependencies
+Download the preprocessed dataset from [this Google Drive link](https://drive.google.com/drive/folders/1tqMOQfYcUJrGCt6cJPvw_NHCmXyN82Cj?usp=sharing) and extract it into a `data/raw/` folder in the project root:
 
-Open up console in the root folder and run
+```
+data/
+└── raw/
+    ├── fake/
+    └── real/
+```
 
-``` pip install -r docs/requirements.txt ```
+---
 
-#### 4. Run the notebook
+## Usage
 
-To see the results simply open Notebook.ipynb and run it.
+### Running the training notebook
 
-#### 5. Access Documentation
+Open `Notebook - Assignment 2.ipynb` to walk through the full pipeline: preprocessing, training, validation, and confusion matrix. This notebook also contains the saved outputs from the original training run.
 
-For the .py files the documentation can be found [HERE](https://adl-ai-generated-image-detection.readthedocs.io/en/latest/index.html)
+To retrain the final model used by the UI, open and run `Train_Final_Model.ipynb`. It will save the trained model as `ADL_model.pth`.
 
-#### 6. Run Tests
+### Running the UI
 
-To run tests:
+Open `User Interface.ipynb` and run all cells. A Gradio interface will launch in your browser. Upload a face image, use the built-in crop tool to isolate the face, and the model will return a **Real / Fake** prediction with a confidence score.
 
-```python -m unittest discover .```
+> The model was trained exclusively on close-up face images, so cropping is important for accurate predictions on photos from the wild.
 
-The tests also run automatically on GitHub on 3 differrent python versions.
+### Running the tests
 
-### LLM use
+```bash
+python -m unittest discover .
+```
 
-I used ChatGPT for the following:
+Tests run automatically via GitHub Actions on **Python 3.9, 3.10, and 3.11** on every push to `main`.
 
-- .ipynb to .py transformation debugging
-    - Here, ChatGPT was dead on point and found every missed function and typo made when transferring.
-- Test generation
-    - As I haven't used testing in Python before, I needed some help understanding the way it works
-- Comment generation
-    - I commented throughout the whole process. Read the Docs; however, expects the comments to be in another format. Additionally, looking back, I realize that my comments were not enough. So, in the end, during the documentation generation process, I put my whole .py files into ChatGPT and asked to convert my comments into the correct format and extend them if needed.
-- General debugging
-- Understanding error messages
+---
 
-## References:
-- Jordan J. Bird, Ahmad Lotfi **2023.** *CIFAKE: Image Classification and Explainable Identification of AI-Generated Synthetic Images* https://arxiv.org/abs/2303.14126
-- Ziyi Xi, Wenmin Huang, Kangkang Wei, Weiqi Luo, Peijia Zheng **2023.** *AI-Generated Image Detection using a Cross-Attention Enhanced Dual-Stream Network* https://paperswithcode.com/paper/ai-generated-image-detection-using-a-cross
-- Zeyu Lu, Di Huang, LEI BAI, Jingjing Qu, Chengyue Wu, Xihui Liu, Wanli Ouyang **2023.** *Seeing is not always believing: Benchmarking Human and Model Perception of AI-Generated Images* https://paperswithcode.com/paper/seeing-is-not-always-believing-benchmarking
-- Krizhevsky, A., & Hinton, G. (2009). Learning multiple layers of features from tiny images. 
-- Bird, J.J. and Lotfi, A., 2024. CIFAKE: Image Classification and Explainable Identification of AI-Generated Synthetic Images. IEEE Access.
-- Real images are from Krizhevsky & Hinton (2009), fake images are from Bird & Lotfi (2024). The Bird & Lotfi study is available [here](https://ieeexplore.ieee.org/abstract/document/10409290).
-- https://www.kaggle.com/datasets/xhlulu/140k-real-and-fake-faces/versions/1/data
-- https://www.kaggle.com/datasets/birdy654/cifake-real-and-ai-generated-synthetic-images
+## Documentation
 
+Full API documentation for `NeuralNetworkDIY.py` and `Preprocess.py` is available on Read the Docs:
 
-*The text was refined using Grammarly for enhanced English accuracy.*
+**[View Documentation](https://adl-ai-generated-image-detection.readthedocs.io/en/latest/index.html)**
+
+---
+
+## LLM Use
+
+ChatGPT was used during this project for:
+
+- Debugging the `.ipynb` to `.py` conversion (missed function calls, typos)
+- Test generation — first time writing Python unit tests
+- Reformatting inline comments into Sphinx/ReadTheDocs docstring format
+- General debugging and understanding error messages
+
+---
+
+## References
+
+- Bird, J.J. & Lotfi, A. (2023). *CIFAKE: Image Classification and Explainable Identification of AI-Generated Synthetic Images.* [arXiv:2303.14126](https://arxiv.org/abs/2303.14126)
+- Xi, Z. et al. (2023). *AI-Generated Image Detection using a Cross-Attention Enhanced Dual-Stream Network.* [paperswithcode](https://paperswithcode.com/paper/ai-generated-image-detection-using-a-cross)
+- Lu, Z. et al. (2023). *Seeing is not always believing: Benchmarking Human and Model Perception of AI-Generated Images.* [paperswithcode](https://paperswithcode.com/paper/seeing-is-not-always-believing-benchmarking)
+- Krizhevsky, A. & Hinton, G. (2009). *Learning multiple layers of features from tiny images.*
+- 140k Real and Fake Faces dataset: [Kaggle](https://www.kaggle.com/datasets/xhlulu/140k-real-and-fake-faces/versions/1/data)
+
+---
+
+*Grammar and phrasing refined with Grammarly.*

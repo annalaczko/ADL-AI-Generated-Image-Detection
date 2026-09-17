@@ -1,3 +1,15 @@
+"""
+NeuralNetworkDIY.py
+===================
+Defines the CNN architecture and training wrapper for the AI-generated image detector.
+
+Classes:
+    ClassifierNetwork: A 4-block CNN that maps 128x128 RGB images to 2 output classes
+                       (0 = real, 1 = fake).
+    Model: A training/inference wrapper around ClassifierNetwork. Handles the
+           optimiser, learning-rate scheduler, early stopping, and batch prediction.
+"""
+
 import torch
 import torch.nn as nn
 import torch.optim as optim

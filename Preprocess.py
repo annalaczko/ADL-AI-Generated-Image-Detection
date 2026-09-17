@@ -1,3 +1,29 @@
+"""
+Preprocess.py
+=============
+Image preprocessing and augmentation pipeline for the AI-generated image detector.
+
+The Process class reads raw images from a directory tree organised as::
+
+    raw_dir/
+        fake/
+        real/
+
+and produces a processed dataset split into train / valid / test sets::
+
+    processed_dir/<size>/
+        train/rgb/
+        valid/rgb/
+        test/rgb/
+
+Optionally, edge-detected and sharpened versions of each image are saved
+alongside the RGB versions (intended for future ensemble experiments).
+
+Classes:
+    Process: Handles resizing, optional augmentation, optional filter generation,
+             and train/valid/test splitting.
+"""
+
 import os
 import shutil
 from torchvision import transforms
